@@ -2,6 +2,7 @@ import express from 'express'; // express 모듈을 가져옴
 import authRouter from './routes/auth.router.js';
 import usersRouter from './routes/users.router.js';
 import { eduTest, eduUsersTest } from './app/middlewares/edu/edu.middleware.js';
+import { errorHandler } from './app/middlewares/errors/error-handler.js';
 
 const app = express(); // express란 객체를 app에 담음
 app.use(express.json()); // 라우트 정의하기 직전에 전체 라우트에서 사용될 미들웨어를 세팅함
@@ -65,6 +66,19 @@ app.post('/api/posts', (request, response, next) => {
 app.use(authRouter);
 // app.use('/api', authRouter); <= 여기에 쓰인 경로는 authRouter에서 공통적으로 붙는 경로를 빼서 쓰는 것. 해당 라우터에는 여기서 적힌 부분을 빼면 됨.
 app.use('/api', eduUsersTest, usersRouter);
+
+// 에러 테스트용 라우트
+app.get('/error', (request, response, next) => {
+  // 'throw'를 이용해서 예외 핸들링 처리도 가능
+  //    └비동기 처리에서는 사용하면 에러 핸들러가 못 받음
+  // throw new Error('쓰로우로 예외 발생');
+
+  // 비동기 처리 내부에서는 반드시 'next(error)'를 이용해야 app crashed가 안 남.
+  setTimeout(() => {
+    next(new Error('넥스트로 예외 발생'));
+  }, 1000);
+})
+
 // -------------------
 
 // 대체 라우트(모든 라우터 중에 가장 마지막에 작성)
@@ -75,6 +89,11 @@ app.use((request, response, next) => { // use를 쓰면 모든 경로를 다 받
   //   msg: '찾을 수 없는 페이지입니다.'
   // });
 });
+
+// -------------------
+// Error Handler 등록
+app.use(errorHandler);
+// -------------------
 
 // listen메소드 : 서버를 주어진 포트에서 시작할 수 있게 만들어줌.
 app.listen(3000, () => {
