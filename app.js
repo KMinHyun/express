@@ -3,6 +3,7 @@ import authRouter from './routes/auth.router.js';
 import usersRouter from './routes/users.router.js';
 import { eduTest, eduUsersTest } from './app/middlewares/edu/edu.middleware.js';
 import { errorHandler } from './app/middlewares/errors/error-handler.js';
+import eduRouter from './routes/edu.router.js';
 
 const app = express(); // express란 객체를 app에 담음
 app.use(express.json()); // 라우트 정의하기 직전에 전체 라우트에서 사용될 미들웨어를 세팅함
@@ -66,6 +67,7 @@ app.post('/api/posts', (request, response, next) => {
 app.use(authRouter);
 // app.use('/api', authRouter); <= 여기에 쓰인 경로는 authRouter에서 공통적으로 붙는 경로를 빼서 쓰는 것. 해당 라우터에는 여기서 적힌 부분을 빼면 됨.
 app.use('/api', eduUsersTest, usersRouter);
+app.use(eduRouter);
 
 // 에러 테스트용 라우트
 app.get('/error', (request, response, next) => {
