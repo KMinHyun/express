@@ -3,7 +3,7 @@ import db from '../app/models/index.js';
 import { Op } from 'sequelize';
 import dayjs from 'dayjs';
 
-const  { sequelize, Employee } = db;
+const  { sequelize, Employee, TitleEmp, Title } = db;
 
 const eduRouter = express.Router();
 
@@ -208,13 +208,43 @@ eduRouter.get('/api/edu', async (request, response, next) => {
             // );
 
         // GROUP BY, HAVING
-        result = await Employee.findAll({
-          attributes: [
-            'gender',
-            [sequelize.fn('COUNT', sequelize.col('*')), 'cnt_gender']
-          ],
-          group: ['gender'],
-          having: sequelize.literal('cnt_gender >= 40000')
+          // result = await Employee.findAll({
+          //   attributes: [
+          //     'gender',
+          //     [sequelize.fn('COUNT', sequelize.col('*')), 'cnt_gender']
+          //   ],
+          //   group: ['gender'],
+          //   having: sequelize.literal('cnt_gender >= 40000')
+          // });
+
+        // JOIN
+        result = await Employee.findOne({
+          attributes: ['empId', 'name'], // Employee에 있는 컬럼명
+          where: {
+            empId: 1
+          },
+          include: [
+            {
+              model: TitleEmp, // 내가 연결할 모델
+              as: 'titleEmps', // 내가 사용할 관계. 이 모델에 호출할 associate의 alias를 가져오면 됨
+              required: true, // <= 'true'일 때 Inner Join을 함 / 'false'일 때 Left Outer Join
+              attributes: ['titleCode'], // JOIN한 테이블에서 출력할 컬럼
+              where: { // JOIN했을 때 조건
+                endAt: {
+                  [Op.is]: null
+                }
+              },
+              include: [
+                {
+                  model: Title,
+                  as: 'title',
+                  // association: 'title' <= model과 as를 쓰지 않고 association만 쓸 수 있다.
+                  required: true,
+                  attributes: ['title'],
+                }
+              ]
+            }
+          ]
         });
 
     // ---------------------------
